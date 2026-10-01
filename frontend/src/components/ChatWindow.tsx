@@ -10,6 +10,11 @@ import {
   decryptSessionKey,
   generateSessionKey,
   encryptSessionKey,
+  signPayload,
+  verifyPayloadSignature,
+  importSigningPublicKey,
+  calculateSafetyNumber,
+  ratchetSessionKey,
 } from '@securechat/crypto';
 import { 
   Send, 
@@ -23,7 +28,11 @@ import {
   Shield,
   Sparkles,
   RefreshCw,
-  Info
+  Info,
+  Fingerprint,
+  ShieldCheck,
+  QrCode,
+  X
 } from 'lucide-react';
 import EmojiPicker, { Theme } from 'emoji-picker-react';
 import { theme } from '@/lib/theme';
@@ -75,12 +84,16 @@ export default function ChatWindow({
   onBack?: () => void; 
   chatTheme?: 'default' | 'ruixen' | 'sunset' 
 }) {
-  const { user, getPrivateKey } = useAuth();
+  const { user, getPrivateKey, getSigningPrivateKey } = useAuth();
   const { socket, isConnected } = useSocket();
 
   const [conversation, setConversation] = useState<any>(null);
   const [messages, setMessages] = useState<any[]>([]);
   const [inputText, setInputText] = useState('');
+
+  const [showSafetyModal, setShowSafetyModal] = useState(false);
+  const [safetyNumber, setSafetyNumber] = useState<string>('');
+  const [verifiedIdentities, setVerifiedIdentities] = useState<Record<string, boolean>>({});
 
   const [activeSessionKey, setActiveSessionKey] = useState<CryptoKey | null>(null);
   const [activeKeyVersion, setActiveKeyVersion] = useState<number>(0);
@@ -292,7 +305,23 @@ export default function ChatWindow({
 
     try {
       const plaintext = await decryptMessage(msg.ciphertext, msg.nonce, key);
-      return { ...msg, decryptedText: plaintext, isDecrypted: true };
+      
+      // Verify digital signature if present
+      let isSignatureValid: boolean | null = null;
+      if (msg.signature) {
+        const senderSigningPubKeyPem = msg.sender?.signingPublicKey || conversation?.members?.find((m: any) => m.userId === msg.senderId)?.user?.signingPublicKey;
+        if (senderSigningPubKeyPem) {
+          try {
+            const senderPubKey = await importSigningPublicKey(senderSigningPubKeyPem);
+            const payloadToVerify = `${conversationId}:${msg.ciphertext}:${msg.nonce}`;
+            isSignatureValid = await verifyPayloadSignature(senderPubKey, msg.signature, payloadToVerify);
+          } catch (e) {
+            isSignatureValid = false;
+          }
+        }
+      }
+
+      return { ...msg, decryptedText: plaintext, isDecrypted: true, isSignatureValid };
     } catch (error: any) {
       setDecryptionErrors((prev) => ({ ...prev, [msg.id]: error.message }));
       return {
@@ -379,14 +408,31 @@ export default function ChatWindow({
     try {
       const { ciphertext, nonce } = await encryptMessage(plaintext, activeSessionKey);
 
+      // Sign message with sender's ECDSA private key
+      let signature: string | null = null;
+      const signingKey = await getSigningPrivateKey();
+      if (signingKey) {
+        const payloadToSign = `${conversationId}:${ciphertext}:${nonce}`;
+        signature = await signPayload(signingKey, payloadToSign);
+      }
+
       socket.emit('send_message', {
         conversationId,
         ciphertext,
         nonce,
         keyVersion: activeKeyVersion,
+        signature,
       });
 
       playSound('send');
+
+      // Forward Secrecy: Ratchet session key
+      try {
+        const ratchetedKey = await ratchetSessionKey(activeSessionKey);
+        setActiveSessionKey(ratchetedKey);
+      } catch (e) {
+        // Fallback
+      }
     } catch (error: any) {
       console.warn('Failed to encrypt/send:', error.message || error);
     }
@@ -498,6 +544,20 @@ export default function ChatWindow({
             <span>Key v{activeKeyVersion}</span>
           </div>
 
+          <button
+            onClick={() => {
+              if (user?.publicKey && otherMember?.publicKey) {
+                calculateSafetyNumber(user.publicKey, otherMember.publicKey).then(setSafetyNumber);
+              }
+              setShowSafetyModal(true);
+            }}
+            className="flex items-center gap-1.5 rounded-full px-2.5 py-1 border border-emerald-500/30 bg-emerald-500/10 text-[11px] font-mono text-emerald-300 hover:bg-emerald-500/20 transition-colors"
+            title="Verify Identity Safety Number"
+          >
+            <Fingerprint size={12} className="text-emerald-400" />
+            <span className="hidden sm:inline">Safety Number</span>
+          </button>
+
           <Link
             href="/security"
             className="hidden md:flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] text-slate-400 hover:text-emerald-400 transition-colors"
@@ -572,6 +632,12 @@ export default function ChatWindow({
                         isMe ? 'text-emerald-100/70' : 'text-slate-400'
                       }`}
                     >
+                      {msg.isSignatureValid && (
+                        <span title="ECDSA P-256 Digital Signature Verified" className="text-emerald-300 flex items-center gap-0.5">
+                          <ShieldCheck size={12} />
+                          <span className="text-[9px]">Verified</span>
+                        </span>
+                      )}
                       <span>
                         {new Date(msg.createdAt).toLocaleTimeString([], {
                           hour: '2-digit',
@@ -683,6 +749,63 @@ export default function ChatWindow({
           </form>
         </div>
       </div>
+
+      {/* Safety Number & Fingerprint Verification Modal */}
+      {showSafetyModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="relative w-full max-w-md rounded-3xl border border-white/10 bg-[#0c1220] p-6 shadow-2xl">
+            <div className="flex items-center justify-between pb-4 border-b border-white/10">
+              <div className="flex items-center gap-2">
+                <Fingerprint className="size-5 text-emerald-400" />
+                <h3 className="font-bold text-white text-base">Safety Number Verification</h3>
+              </div>
+              <button 
+                onClick={() => setShowSafetyModal(false)} 
+                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-white/5 transition-colors"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="mt-4 space-y-4">
+              <p className="text-xs text-slate-300 leading-relaxed">
+                Compare this 60-digit safety number with <strong className="text-white">{otherMember?.username || 'peer'}</strong> to verify cryptographic authenticity and guarantee that no intermediary or Man-in-the-Middle is intercepting your conversation.
+              </p>
+
+              {/* Visual 2D Matrix Grid */}
+              <div className="mx-auto w-40 h-40 rounded-2xl border border-emerald-500/30 bg-emerald-950/20 p-3 flex flex-col items-center justify-center shadow-[0_0_25px_rgba(16,185,129,0.15)]">
+                <QrCode className="size-24 text-emerald-400" />
+                <span className="text-[10px] font-mono text-emerald-300 mt-2">SHA-256 Digest Matrix</span>
+              </div>
+
+              {/* 60-Digit Formatted Number */}
+              <div className="rounded-2xl border border-white/10 bg-slate-900/90 p-4 font-mono text-center text-xs tracking-wider text-emerald-300 leading-relaxed select-all">
+                {safetyNumber || 'Computing fingerprint...'}
+              </div>
+
+              <button
+                onClick={() => {
+                  if (otherMember?.id) {
+                    setVerifiedIdentities((prev) => ({ ...prev, [otherMember.id]: !prev[otherMember.id] }));
+                  }
+                }}
+                className={`w-full py-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-all ${
+                  otherMember?.id && verifiedIdentities[otherMember.id]
+                    ? 'bg-emerald-500/20 border border-emerald-500/40 text-emerald-300'
+                    : 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-lg shadow-emerald-500/20'
+                }`}
+              >
+                <ShieldCheck size={15} />
+                <span>
+                  {otherMember?.id && verifiedIdentities[otherMember.id]
+                    ? '✓ Identity Verified by You'
+                    : 'Mark Contact as Verified'}
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

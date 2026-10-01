@@ -11,6 +11,21 @@ interface SocketWithUser extends Socket {
 const onlineUsers = new Map<string, number>();
 
 export const setupSocketHandlers = (io: Server) => {
+  // Optional Redis horizontal scaling
+  if (process.env.REDIS_URL) {
+    try {
+      // Lazy load to prevent hard crash if optional redis packages are compiling
+      const { createAdapter } = require('@socket.io/redis-adapter');
+      const Redis = require('ioredis');
+      const pubClient = new Redis(process.env.REDIS_URL);
+      const subClient = pubClient.duplicate();
+      io.adapter(createAdapter(pubClient, subClient));
+      console.log('✅ Redis Pub/Sub adapter active for horizontal WebSocket scaling');
+    } catch (err) {
+      console.warn('⚠️ Redis adapter initialization skipped, falling back to local memory transport');
+    }
+  }
+
   io.use((socket: SocketWithUser, next) => {
     try {
       // 1. Try explicit auth token from client (bypasses cross-origin cookie issues on WSS)
@@ -68,7 +83,7 @@ export const setupSocketHandlers = (io: Server) => {
 
     socket.on('send_message', async (data) => {
       try {
-        const { conversationId, ciphertext, nonce, authTag, keyVersion } = data;
+        const { conversationId, ciphertext, nonce, authTag, keyVersion, signature } = data;
         
         // Save to DB and bump conversation updatedAt
         const [message] = await prisma.$transaction([
@@ -79,10 +94,11 @@ export const setupSocketHandlers = (io: Server) => {
               ciphertext,
               nonce,
               authTag: authTag || "",
-              keyVersion
+              keyVersion,
+              signature: signature || null,
             },
             include: {
-              sender: { select: { id: true, username: true } }
+              sender: { select: { id: true, username: true, signingPublicKey: true, publicKey: true } }
             }
           }),
           prisma.conversation.update({

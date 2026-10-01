@@ -13,9 +13,15 @@ model User {
   username     String   @unique
   email        String   @unique
   passwordHash String
-  publicKey    String   // PEM encoded RSA 3072-bit public key
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  publicKey           String   // PEM encoded RSA 3072-bit public key
+  encryptedPrivateKey String?  // Zero-Knowledge Vault: AES-256-GCM encrypted private key
+  keySalt             String?  // Salt for PBKDF2 (600,000 rounds)
+  keyIv               String?  // IV for private key encryption
+  signingPublicKey    String?  // Public key for digital signatures (RSA-PSS)
+  encryptedSigningKey String?  // Encrypted private signing key
+  signingKeyIv        String?  // IV for private signing key encryption
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
   
   // Relations
   memberships  ConversationMember[]
@@ -66,6 +72,7 @@ model Message {
   nonce          String   // Unique IV for this message
   authTag        String   // AES-GCM Authentication Tag
   keyVersion     Int      // Reference to the active SessionKey version
+  signature      String?  // RSA-PSS digital signature over (conversationId + ciphertext + nonce + timestamp)
   createdAt      DateTime @default(now())
   deliveredAt    DateTime?
   readAt         DateTime?

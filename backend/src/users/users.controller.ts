@@ -25,7 +25,8 @@ export const searchUsers = async (req: Request, res: Response): Promise<void> =>
       select: {
         id: true,
         username: true,
-        publicKey: true
+        publicKey: true,
+        signingPublicKey: true
       },
       take: 10
     });
@@ -45,7 +46,8 @@ export const getPublicKey = async (req: Request, res: Response): Promise<void> =
       where: { id: id as string },
       select: {
         id: true,
-        publicKey: true
+        publicKey: true,
+        signingPublicKey: true
       }
     });
 

@@ -7,7 +7,18 @@ const JWT_SECRET = process.env.JWT_SECRET || 'supersecretfallback_pleasechange';
 
 export const register = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { username, email, password, publicKey } = req.body;
+    const { 
+      username, 
+      email, 
+      password, 
+      publicKey,
+      encryptedPrivateKey,
+      keySalt,
+      keyIv,
+      signingPublicKey,
+      encryptedSigningKey,
+      signingKeyIv
+    } = req.body;
     
     if (!username || !email || !password || !publicKey) {
       res.status(400).json({ error: 'All fields are required (username, email, password, publicKey)' });
@@ -38,7 +49,13 @@ export const register = async (req: Request, res: Response): Promise<void> => {
         username,
         email,
         passwordHash,
-        publicKey
+        publicKey,
+        encryptedPrivateKey: encryptedPrivateKey || null,
+        keySalt: keySalt || null,
+        keyIv: keyIv || null,
+        signingPublicKey: signingPublicKey || null,
+        encryptedSigningKey: encryptedSigningKey || null,
+        signingKeyIv: signingKeyIv || null,
       }
     });
 
@@ -58,7 +75,13 @@ export const register = async (req: Request, res: Response): Promise<void> => {
         id: user.id,
         username: user.username,
         email: user.email,
-        publicKey: user.publicKey
+        publicKey: user.publicKey,
+        encryptedPrivateKey: user.encryptedPrivateKey,
+        keySalt: user.keySalt,
+        keyIv: user.keyIv,
+        signingPublicKey: user.signingPublicKey,
+        encryptedSigningKey: user.encryptedSigningKey,
+        signingKeyIv: user.signingKeyIv,
       }
     });
   } catch (error) {
@@ -90,15 +113,35 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    const { publicKey } = req.body;
+    const { 
+      publicKey, 
+      encryptedPrivateKey, 
+      keySalt, 
+      keyIv, 
+      signingPublicKey, 
+      encryptedSigningKey, 
+      signingKeyIv 
+    } = req.body;
     let updatedPublicKey = user.publicKey;
 
+    // Optional migration / update of vault keys on login
+    const updateData: any = {};
     if (publicKey && publicKey !== user.publicKey) {
+      updateData.publicKey = publicKey;
+      updatedPublicKey = publicKey;
+    }
+    if (encryptedPrivateKey && !user.encryptedPrivateKey) updateData.encryptedPrivateKey = encryptedPrivateKey;
+    if (keySalt && !user.keySalt) updateData.keySalt = keySalt;
+    if (keyIv && !user.keyIv) updateData.keyIv = keyIv;
+    if (signingPublicKey && !user.signingPublicKey) updateData.signingPublicKey = signingPublicKey;
+    if (encryptedSigningKey && !user.encryptedSigningKey) updateData.encryptedSigningKey = encryptedSigningKey;
+    if (signingKeyIv && !user.signingKeyIv) updateData.signingKeyIv = signingKeyIv;
+
+    if (Object.keys(updateData).length > 0) {
       await prisma.user.update({
         where: { id: user.id },
-        data: { publicKey }
+        data: updateData
       });
-      updatedPublicKey = publicKey;
     }
 
     const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: '24h' });
@@ -117,7 +160,13 @@ export const login = async (req: Request, res: Response): Promise<void> => {
         id: user.id,
         username: user.username,
         email: user.email,
-        publicKey: updatedPublicKey
+        publicKey: updatedPublicKey,
+        encryptedPrivateKey: updateData.encryptedPrivateKey || user.encryptedPrivateKey,
+        keySalt: updateData.keySalt || user.keySalt,
+        keyIv: updateData.keyIv || user.keyIv,
+        signingPublicKey: updateData.signingPublicKey || user.signingPublicKey,
+        encryptedSigningKey: updateData.encryptedSigningKey || user.encryptedSigningKey,
+        signingKeyIv: updateData.signingKeyIv || user.signingKeyIv,
       }
     });
   } catch (error) {
@@ -161,7 +210,13 @@ export const me = async (req: Request, res: Response): Promise<void> => {
         id: user.id,
         username: user.username,
         email: user.email,
-        publicKey: user.publicKey
+        publicKey: user.publicKey,
+        encryptedPrivateKey: user.encryptedPrivateKey,
+        keySalt: user.keySalt,
+        keyIv: user.keyIv,
+        signingPublicKey: user.signingPublicKey,
+        encryptedSigningKey: user.encryptedSigningKey,
+        signingKeyIv: user.signingKeyIv,
       }
     });
   } catch (error) {

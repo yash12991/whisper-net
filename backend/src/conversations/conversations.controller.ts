@@ -26,7 +26,7 @@ export const createConversation = async (req: Request, res: Response): Promise<v
         ]
       },
       include: {
-        members: { include: { user: { select: { id: true, username: true, publicKey: true } } } },
+        members: { include: { user: { select: { id: true, username: true, publicKey: true, signingPublicKey: true } } } },
         sessionKeys: { orderBy: { keyVersion: 'desc' }, take: 1 }
       }
     });
@@ -53,7 +53,7 @@ export const createConversation = async (req: Request, res: Response): Promise<v
         }
       },
       include: {
-        members: { include: { user: { select: { id: true, username: true, publicKey: true } } } },
+        members: { include: { user: { select: { id: true, username: true, publicKey: true, signingPublicKey: true } } } },
         sessionKeys: { orderBy: { keyVersion: 'desc' }, take: 1 }
       }
     });
@@ -92,7 +92,7 @@ export const createGroupConversation = async (req: Request, res: Response): Prom
         }
       },
       include: {
-        members: { include: { user: { select: { id: true, username: true, publicKey: true } } } },
+        members: { include: { user: { select: { id: true, username: true, publicKey: true, signingPublicKey: true } } } },
         sessionKeys: { orderBy: { keyVersion: 'desc' }, take: 1 }
       }
     });
@@ -144,7 +144,7 @@ export const getConversation = async (req: Request, res: Response): Promise<void
     const conversation = await prisma.conversation.findUnique({
       where: { id: id as string },
       include: {
-        members: { include: { user: { select: { id: true, username: true, publicKey: true } } } },
+        members: { include: { user: { select: { id: true, username: true, publicKey: true, signingPublicKey: true } } } },
         sessionKeys: { orderBy: { keyVersion: 'desc' }, take: 1 }
       }
     });
