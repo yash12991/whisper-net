@@ -10,6 +10,11 @@ const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 export const metadata: Metadata = {
   title: "WhisperNet — End-to-End Encrypted Communications",
   description: "Next-generation cryptographic chat platform powered by client-side RSA-3072, AES-256-GCM authenticated encryption, and forward-secret key ratcheting.",
+  icons: {
+    icon: "/logo.png",
+    shortcut: "/logo.png",
+    apple: "/logo.png",
+  },
 };
 
 export default function RootLayout({

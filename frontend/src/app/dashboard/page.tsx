@@ -9,6 +9,7 @@ import { Shield, Lock, KeyRound, RefreshCw, Sparkles, CheckCircle2, ShieldAlert 
 import { theme } from '@/lib/theme';
 import PixelBlast from '@/components/ui/PixelBlast';
 import Link from 'next/link';
+import { WhisperNetLogo } from '@/components/ui/WhisperNetLogo';
 
 export default function Dashboard() {
   const { user, loading } = useAuth();
@@ -115,15 +116,8 @@ export default function Dashboard() {
                   className="absolute -inset-4 rounded-3xl opacity-50 blur-xl animate-pulse-glow"
                   style={{ background: 'radial-gradient(circle, rgba(16, 185, 129, 0.4) 0%, transparent 70%)' }}
                 />
-                <div
-                  className="relative flex size-20 items-center justify-center rounded-2xl border shadow-2xl backdrop-blur-xl"
-                  style={{
-                    background: 'linear-gradient(135deg, rgba(20, 29, 51, 0.9) 0%, rgba(14, 21, 38, 0.95) 100%)',
-                    borderColor: 'rgba(16, 185, 129, 0.4)',
-                    boxShadow: '0 0 35px rgba(16, 185, 129, 0.25)'
-                  }}
-                >
-                  <Shield className="size-10" style={{ color: theme.accent }} strokeWidth={1.5} />
+                <div className="relative">
+                  <WhisperNetLogo size={80} />
                 </div>
               </div>
 

@@ -26,6 +26,7 @@ import { generateSessionKey, encryptSessionKey, importPublicKey } from '@securec
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { theme } from '@/lib/theme';
+import { WhisperNetLogo } from '@/components/ui/WhisperNetLogo';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
 
@@ -211,16 +212,7 @@ export default function Sidebar({
       {/* Top Header */}
       <div className="flex items-center justify-between p-4 pb-3 border-b border-white/5">
         <div className="flex items-center gap-2.5">
-          <div 
-            className="flex size-9 items-center justify-center rounded-xl border shadow-md"
-            style={{
-              background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.25) 0%, rgba(6, 182, 212, 0.25) 100%)',
-              borderColor: 'rgba(16, 185, 129, 0.4)',
-              boxShadow: '0 0 15px rgba(16, 185, 129, 0.2)'
-            }}
-          >
-            <Shield className="size-4.5 text-emerald-400" />
-          </div>
+          <WhisperNetLogo size={36} />
           <div>
             <div className="flex items-center gap-1.5">
               <span className="font-bold text-base tracking-tight text-white">WhisperNet</span>

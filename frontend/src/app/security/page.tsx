@@ -25,6 +25,7 @@ import Link from 'next/link';
 import { generateSessionKey, encryptMessage, decryptMessage } from '@securechat/crypto';
 import axios from 'axios';
 import { theme } from '@/lib/theme';
+import { WhisperNetLogo } from '@/components/ui/WhisperNetLogo';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
 
@@ -130,16 +131,7 @@ export default function SecurityLab() {
       >
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <div className="flex items-center gap-3">
-            <div
-              className="flex size-10 items-center justify-center rounded-xl border shadow-lg"
-              style={{
-                background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(6, 182, 212, 0.2) 100%)',
-                borderColor: 'rgba(16, 185, 129, 0.4)',
-                boxShadow: '0 0 20px rgba(16, 185, 129, 0.2)',
-              }}
-            >
-              <Shield className="size-5" style={{ color: theme.accent }} />
-            </div>
+            <WhisperNetLogo size={38} />
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-base font-bold tracking-tight text-white">WhisperNet Security Lab</h1>
