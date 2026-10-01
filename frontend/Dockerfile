@@ -2,27 +2,40 @@ FROM node:22-alpine AS builder
 
 WORKDIR /app
 
-# Copy workspace setup
-COPY package.json pnpm-workspace.yaml ./
+# Enable pnpm via corepack
+RUN corepack enable && corepack prepare pnpm@9.15.4 --activate
+
+# Copy workspace manifests
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
 COPY backend/package.json backend/
 COPY frontend/package.json frontend/
 COPY packages/crypto/package.json packages/crypto/
 COPY packages/types/package.json packages/types/
 COPY packages/config/package.json packages/config/
+COPY prisma/schema.prisma prisma/
 
-# Install dependencies
-RUN npm install --legacy-peer-deps
+# Install workspace dependencies
+RUN pnpm install --frozen-lockfile
 
-# Copy source code
+# Copy full repository source
 COPY . .
 
-# Build shared packages
-WORKDIR /app/packages/crypto
-RUN npm run build
+# Build shared crypto packages
+RUN pnpm --filter "@securechat/*" build
 
-# Build Next.js
+# Build Next.js frontend
+RUN pnpm --filter web build
+
+# Production runtime stage
+FROM node:22-alpine AS runner
+WORKDIR /app
+
+ENV NODE_ENV=production
+RUN corepack enable && corepack prepare pnpm@9.15.4 --activate
+
+COPY --from=builder /app /app
+
 WORKDIR /app/frontend
-RUN npm run build
 
 EXPOSE 3000
-CMD ["npm", "run", "start"]
+CMD ["pnpm", "start"]
