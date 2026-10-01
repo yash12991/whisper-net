@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import { 
   Shield, 
   Lock, 
@@ -9,14 +10,18 @@ import {
   CheckCircle2, 
   Terminal, 
   ArrowRight, 
-  Check, 
-  Copy,
+  Sparkles,
   Cpu,
   Layers,
-  Sparkles
+  Fingerprint,
+  Zap,
+  Globe,
+  Check
 } from 'lucide-react';
-import { theme } from '@/lib/theme';
 import { WhisperNetLogo } from './WhisperNetLogo';
+
+// Dynamically import GradientWaves so it renders purely on client WebGL
+const GradientWaves = dynamic(() => import('./GradientWaves'), { ssr: false });
 
 export type ModernAuthLayoutProps = {
   mode: 'login' | 'register';
@@ -25,217 +30,218 @@ export type ModernAuthLayoutProps = {
 
 export function ModernAuthLayout({ mode, children }: ModernAuthLayoutProps) {
   const isLogin = mode === 'login';
-  const [copiedKey, setCopiedKey] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const [mousePos, setMousePos] = useState({ x: 0.5, y: 0.5 });
 
-  const sampleKey = "30820122300d06092a864886f70d01010105000382010f003082010a0282010100c5a...";
+  useEffect(() => {
+    setMounted(true);
+    const handleMouseMove = (e: MouseEvent) => {
+      setMousePos({
+        x: e.clientX / window.innerWidth,
+        y: e.clientY / window.innerHeight,
+      });
+    };
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
 
   return (
-    <div className="min-h-screen w-full flex bg-[#070a12] text-slate-100 selection:bg-emerald-500/30 selection:text-emerald-300 font-sans">
-      {/* Left Column: Technical Showcase (Hidden on Mobile) */}
-      <div className="hidden lg:flex lg:w-[52%] xl:w-[55%] relative flex-col justify-between p-12 overflow-hidden border-r border-white/5 bg-[#090e1a]">
-        {/* Subtle Ambient Background Gradients */}
-        <div 
-          className="pointer-events-none absolute -top-32 -left-32 size-[500px] rounded-full opacity-20 blur-[120px]"
-          style={{ background: 'radial-gradient(circle, #10b981 0%, transparent 70%)' }}
-        />
-        <div 
-          className="pointer-events-none absolute -bottom-32 -right-32 size-[500px] rounded-full opacity-15 blur-[120px]"
-          style={{ background: 'radial-gradient(circle, #06b6d4 0%, transparent 70%)' }}
-        />
+    <div className="relative min-h-screen w-full flex flex-col justify-between overflow-x-hidden bg-[#050811] text-slate-100 selection:bg-emerald-500/30 selection:text-emerald-300 font-sans">
+      {/* Background Layer 1: WebGL Gradient Waves */}
+      <div className="absolute inset-0 pointer-events-none z-0 opacity-40 mix-blend-screen">
+        {mounted && (
+          <GradientWaves
+            horizonColor="#050811"
+            waveColor="#05251d"
+            crestColor="#10b981"
+            speed={0.35}
+            amplitude={0.5}
+            waveScale={2.5}
+            waveRatio={1.2}
+            swell={0.4}
+            turbulence={0.5}
+            tilt={0.3}
+            height={-0.3}
+            fogDepth={0.12}
+            brightness={0.8}
+            opacity={0.6}
+            mouseInteraction={true}
+            grain={true}
+            grainIntensity={0.06}
+          />
+        )}
+      </div>
 
-        {/* Cyber-Grid Pattern Overlay */}
-        <div className="absolute inset-0 cyber-grid opacity-40 pointer-events-none" />
+      {/* Background Layer 2: Interactive Ambient Cursor Light Spotlight */}
+      <div 
+        className="pointer-events-none absolute inset-0 z-0 transition-opacity duration-1000"
+        style={{
+          background: `radial-gradient(800px circle at ${mousePos.x * 100}% ${mousePos.y * 100}%, rgba(16, 185, 129, 0.08), rgba(6, 182, 212, 0.04) 40%, transparent 70%)`
+        }}
+      />
 
-        {/* Top Brand & Version Badge */}
-        <div className="relative z-10 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <WhisperNetLogo size={44} />
-            <div>
-              <span className="text-lg font-bold tracking-tight text-white">WhisperNet</span>
-              <span className="block text-[11px] font-mono text-slate-400">Cryptographic Protocol v1.0</span>
-            </div>
-          </div>
+      {/* Background Layer 3: Cyber-Grid and Angular Neon Lights */}
+      <div className="absolute inset-0 cyber-grid opacity-25 pointer-events-none z-0" />
+      <div 
+        className="pointer-events-none absolute -top-40 left-1/2 -translate-x-1/2 size-[650px] rounded-full opacity-20 blur-[140px] z-0"
+        style={{ background: 'radial-gradient(circle, #10b981 0%, #06b6d4 40%, transparent 70%)' }}
+      />
 
-          <div className="flex items-center gap-2 rounded-full px-3 py-1 bg-white/[0.03] border border-white/10 text-[11px] font-mono text-slate-300">
-            <span className="size-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            <span>Zero-Knowledge Server</span>
-          </div>
-        </div>
-
-        {/* Center: Live Architecture Handshake Visualizer */}
-        <div className="relative z-10 my-auto py-8 max-w-xl">
-          <div className="space-y-6">
-            <div>
-              <span className="text-xs font-mono font-semibold uppercase tracking-wider text-emerald-400">
-                End-to-End Encryption Architecture
+      {/* Top Floating Navigation Header */}
+      <header className="relative z-10 w-full max-w-6xl mx-auto px-6 py-5 flex items-center justify-between">
+        <Link href="/" className="flex items-center gap-3 group">
+          <WhisperNetLogo size={36} />
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-base font-extrabold tracking-tight text-white group-hover:text-emerald-300 transition-colors">
+                WhisperNet
               </span>
-              <h2 className="mt-2 text-3xl xl:text-4xl font-extrabold tracking-tight text-white leading-tight">
-                Private messaging without a trusted intermediary.
-              </h2>
-              <p className="mt-3 text-sm text-slate-400 leading-relaxed">
-                Keys are generated exclusively in client RAM via the W3C Web Cryptography API. 
-                Plaintext never transits the wire or lands on the database.
-              </p>
+              <span className="rounded-full px-2 py-0.2 text-[9px] font-semibold tracking-wider font-mono bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                v1.0 E2EE
+              </span>
             </div>
+            <p className="text-[11px] text-slate-400 font-mono tracking-tight">Zero-Knowledge Messaging</p>
+          </div>
+        </Link>
 
-            {/* Simulated Live Handshake Console */}
-            <div className="rounded-2xl border border-white/10 bg-[#0d1424]/90 p-5 shadow-2xl backdrop-blur-md">
-              <div className="flex items-center justify-between pb-3 border-b border-white/5 text-xs text-slate-400">
-                <div className="flex items-center gap-2">
-                  <Terminal size={14} className="text-emerald-400" />
-                  <span className="font-mono font-medium text-slate-300">handshake_verification.ts</span>
-                </div>
-                <span className="font-mono text-[10px] text-emerald-400/80 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
-                  AEAD Verified
-                </span>
-              </div>
-
-              {/* Code / Protocol Log Steps */}
-              <div className="mt-3 space-y-2 font-mono text-[11px] text-slate-300">
-                <div className="flex items-center justify-between text-slate-400">
-                  <span className="text-slate-500">1. Client Keygen</span>
-                  <span className="text-emerald-400">RSA-OAEP 3072-bit (SHA-256)</span>
-                </div>
-                <div className="flex items-center justify-between text-slate-400">
-                  <span className="text-slate-500">2. Session Key</span>
-                  <span className="text-cyan-400">AES-256-GCM Ephemeral</span>
-                </div>
-                <div className="flex items-center justify-between text-slate-400">
-                  <span className="text-slate-500">3. Nonce Entropy</span>
-                  <span className="text-indigo-400">96-bit CSPRNG (Single-use)</span>
-                </div>
-                <div className="flex items-center justify-between text-slate-400">
-                  <span className="text-slate-500">4. Rotation Threshold</span>
-                  <span className="text-amber-400">Every 30 Messages</span>
-                </div>
-
-                <div className="mt-3 pt-3 border-t border-white/5 flex items-center justify-between text-slate-400 text-[10px]">
-                  <span className="truncate max-w-[280px] text-slate-500">Fingerprint: {sampleKey}</span>
-                  <button 
-                    onClick={() => {
-                      navigator.clipboard.writeText(sampleKey);
-                      setCopiedKey(true);
-                      setTimeout(() => setCopiedKey(false), 2000);
-                    }}
-                    className="flex items-center gap-1 text-slate-400 hover:text-white"
-                  >
-                    {copiedKey ? <Check size={11} className="text-emerald-400" /> : <Copy size={11} />}
-                    <span>{copiedKey ? 'Copied' : 'Copy'}</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* 3 Metric Pills */}
-            <div className="grid grid-cols-3 gap-3">
-              <div className="rounded-xl border border-white/5 bg-white/[0.02] p-3 text-center">
-                <div className="text-lg font-bold text-white">0 bytes</div>
-                <div className="text-[10px] text-slate-500 uppercase tracking-wider mt-0.5">Plaintext Stored</div>
-              </div>
-              <div className="rounded-xl border border-white/5 bg-white/[0.02] p-3 text-center">
-                <div className="text-lg font-bold text-emerald-400">3072-bit</div>
-                <div className="text-[10px] text-slate-500 uppercase tracking-wider mt-0.5">RSA Margin</div>
-              </div>
-              <div className="rounded-xl border border-white/5 bg-white/[0.02] p-3 text-center">
-                <div className="text-lg font-bold text-cyan-400">128-bit</div>
-                <div className="text-[10px] text-slate-500 uppercase tracking-wider mt-0.5">GMAC Auth Tag</div>
-              </div>
-            </div>
+        <div className="flex items-center gap-3">
+          <Link
+            href="/security"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.04] border border-white/10 text-xs font-medium text-slate-300 hover:text-white hover:border-emerald-500/40 hover:bg-emerald-500/10 transition-all shadow-sm"
+          >
+            <Terminal size={13} className="text-emerald-400" />
+            <span className="hidden sm:inline">Security Lab</span>
+          </Link>
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[11px] font-mono text-emerald-400">
+            <span className="size-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="hidden sm:inline">Server Zero-Knowledge</span>
+            <span className="sm:hidden">Active</span>
           </div>
         </div>
+      </header>
 
-        {/* Bottom Technical Guarantee */}
-        <div className="relative z-10 flex items-center justify-between text-xs text-slate-500 border-t border-white/5 pt-6">
-          <p>© 2026 WhisperNet. Open Source Academic Implementation.</p>
-          <div className="flex items-center gap-4">
-            <Link href="/security" className="hover:text-slate-300 transition-colors">
-              Security Lab
-            </Link>
-            <span className="text-slate-700">•</span>
-            <span className="text-slate-400">PostgreSQL + Prisma</span>
-          </div>
-        </div>
-      </div>
+      {/* Main Center Stage: Glassmorphic Vault Card */}
+      <main className="relative z-10 flex-1 flex flex-col items-center justify-center px-4 py-8 sm:px-6">
+        <div className="w-full max-w-[460px] animate-in fade-in zoom-in-95 duration-500">
+          {/* Card Container with Specular Highlight and Glow */}
+          <div className="relative rounded-3xl border border-white/[0.08] bg-[#0b101e]/85 backdrop-blur-3xl shadow-[0_20px_70px_rgba(0,0,0,0.85),0_0_50px_rgba(16,185,129,0.08)] overflow-hidden transition-all duration-300 hover:border-emerald-500/25">
+            {/* Top Glowing Bevel Line */}
+            <div className="h-[1.5px] w-full bg-gradient-to-r from-transparent via-emerald-400/60 to-transparent" />
 
-      {/* Right Column: Form Container */}
-      <div className="w-full lg:w-[48%] xl:w-[45%] flex flex-col justify-between p-6 sm:p-12 lg:p-16 overflow-y-auto">
-        {/* Mobile Header (Only visible on small screens) */}
-        <div className="lg:hidden flex items-center justify-between pb-6 mb-4 border-b border-white/5">
-          <div className="flex items-center gap-2.5">
-            <WhisperNetLogo size={32} />
-            <span className="font-bold text-white text-base">WhisperNet</span>
-          </div>
-          <span className="text-[11px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
-            E2EE
-          </span>
-        </div>
+            {/* Inner Padding Container */}
+            <div className="p-6 sm:p-9">
+              {/* Center Logo & Brand Identity */}
+              <div className="flex flex-col items-center text-center mb-6">
+                <div className="relative mb-3.5">
+                  <div 
+                    className="absolute -inset-3 rounded-full opacity-60 blur-lg animate-pulse-glow"
+                    style={{ background: 'radial-gradient(circle, rgba(16, 185, 129, 0.4) 0%, rgba(6, 182, 212, 0.2) 60%, transparent 80%)' }}
+                  />
+                  <WhisperNetLogo size={56} />
+                </div>
+                <h1 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
+                  <span>{isLogin ? 'Access Cryptographic Vault' : 'Create Identity'}</span>
+                </h1>
+                <p className="mt-1.5 text-xs text-slate-400 max-w-[320px] leading-relaxed">
+                  {isLogin
+                    ? 'Authenticate to derive RSA keys and decrypt peer sessions.'
+                    : 'Initialize your 3072-bit client keys via Web Crypto API.'}
+                </p>
+              </div>
 
-        {/* Centered Form Wrapper */}
-        <div className="mx-auto w-full max-w-[380px] my-auto py-6">
-          {/* Top Segmented Tab Switcher */}
-          <div className="mb-8 p-1 rounded-xl bg-white/[0.04] border border-white/10 flex items-center">
-            <Link
-              href="/login"
-              className={`flex-1 text-center py-2 text-xs font-semibold rounded-lg transition-all ${
-                isLogin
-                  ? 'bg-slate-800 text-white shadow-sm border border-white/10'
-                  : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              Sign In
-            </Link>
-            <Link
-              href="/register"
-              className={`flex-1 text-center py-2 text-xs font-semibold rounded-lg transition-all ${
-                !isLogin
-                  ? 'bg-slate-800 text-white shadow-sm border border-white/10'
-                  : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              Create Account
-            </Link>
-          </div>
-
-          {/* Form Header */}
-          <div className="mb-6">
-            <h1 className="text-2xl font-bold tracking-tight text-white">
-              {isLogin ? 'Welcome back' : 'Create an account'}
-            </h1>
-            <p className="mt-1.5 text-xs text-slate-400 leading-relaxed">
-              {isLogin
-                ? 'Enter your credentials to decrypt your active sessions.'
-                : 'Generate your 3072-bit cryptographic keys to get started.'}
-            </p>
-          </div>
-
-          {/* Render Actual Form */}
-          {children}
-
-          {/* Direct Switch Link */}
-          <div className="mt-6 text-center text-xs text-slate-500">
-            {isLogin ? (
-              <>
-                New to WhisperNet?{' '}
-                <Link href="/register" className="font-semibold text-emerald-400 hover:underline">
-                  Create an encrypted account
+              {/* Segmented Controller Tab Switcher */}
+              <div className="mb-6 p-1 rounded-xl bg-slate-900/80 border border-white/10 flex items-center gap-1 shadow-inner">
+                <Link
+                  href="/login"
+                  className={`flex-1 flex items-center justify-center gap-2 py-2 text-xs font-semibold rounded-lg transition-all duration-200 ${
+                    isLogin
+                      ? 'bg-gradient-to-r from-emerald-500/20 to-teal-500/20 text-emerald-300 border border-emerald-500/30 shadow-sm'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  <Lock size={13} className={isLogin ? 'text-emerald-400' : 'text-slate-500'} />
+                  <span>Sign In</span>
                 </Link>
-              </>
-            ) : (
-              <>
-                Already have an account?{' '}
-                <Link href="/login" className="font-semibold text-emerald-400 hover:underline">
-                  Sign in instead
+                <Link
+                  href="/register"
+                  className={`flex-1 flex items-center justify-center gap-2 py-2 text-xs font-semibold rounded-lg transition-all duration-200 ${
+                    !isLogin
+                      ? 'bg-gradient-to-r from-emerald-500/20 to-teal-500/20 text-emerald-300 border border-emerald-500/30 shadow-sm'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  <KeyRound size={13} className={!isLogin ? 'text-emerald-400' : 'text-slate-500'} />
+                  <span>Create Account</span>
                 </Link>
-              </>
-            )}
+              </div>
+
+              {/* Form Body Injection */}
+              <div className="relative">
+                {children}
+              </div>
+
+              {/* Subtle Switch Link */}
+              <div className="mt-6 pt-5 border-t border-white/5 text-center text-xs text-slate-400">
+                {isLogin ? (
+                  <p>
+                    Don&apos;t have an identity yet?{' '}
+                    <Link href="/register" className="font-semibold text-emerald-400 hover:text-emerald-300 underline underline-offset-4 transition-colors">
+                      Generate keys now
+                    </Link>
+                  </p>
+                ) : (
+                  <p>
+                    Already generated a keypair?{' '}
+                    <Link href="/login" className="font-semibold text-emerald-400 hover:text-emerald-300 underline underline-offset-4 transition-colors">
+                      Sign in to your vault
+                    </Link>
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Bottom Security Guarantee Strip */}
+            <div className="bg-[#070b16] px-6 py-3.5 border-t border-white/5 flex items-center justify-between text-[11px] font-mono text-slate-400">
+              <div className="flex items-center gap-1.5 text-emerald-400">
+                <Shield size={12} />
+                <span>Zero Server Plaintext</span>
+              </div>
+              <div className="flex items-center gap-1 text-slate-500">
+                <Cpu size={12} />
+                <span>RSA-OAEP 3072</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Under-Card Feature Badges */}
+          <div className="mt-6 grid grid-cols-3 gap-2.5 text-center">
+            <div className="rounded-xl border border-white/5 bg-white/[0.02] p-2.5 backdrop-blur-md">
+              <div className="text-xs font-bold text-white">E2EE Stream</div>
+              <div className="text-[10px] text-slate-500 font-mono mt-0.5">AES-256-GCM</div>
+            </div>
+            <div className="rounded-xl border border-white/5 bg-white/[0.02] p-2.5 backdrop-blur-md">
+              <div className="text-xs font-bold text-emerald-400">WebCrypto</div>
+              <div className="text-[10px] text-slate-500 font-mono mt-0.5">In-Memory Keys</div>
+            </div>
+            <div className="rounded-xl border border-white/5 bg-white/[0.02] p-2.5 backdrop-blur-md">
+              <div className="text-xs font-bold text-cyan-400">PostgreSQL</div>
+              <div className="text-[10px] text-slate-500 font-mono mt-0.5">Ciphertext Only</div>
+            </div>
           </div>
         </div>
+      </main>
 
-        {/* Bottom Security Note */}
-        <div className="text-center text-[11px] text-slate-600 mt-6 pt-4 border-t border-white/5">
-          <span>Protected by client-side Web Crypto API. Private keys stay in browser RAM.</span>
+      {/* Bottom Legal / Technical Footer */}
+      <footer className="relative z-10 w-full max-w-6xl mx-auto px-6 py-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500 border-t border-white/5">
+        <p>© 2026 WhisperNet. End-to-End Encrypted Communications. MIT License.</p>
+        <div className="flex items-center gap-4 text-xs font-mono">
+          <Link href="/security" className="hover:text-emerald-400 transition-colors">
+            Audit Cryptography
+          </Link>
+          <span>•</span>
+          <span className="text-slate-400">W3C SubtleCrypto Spec</span>
         </div>
-      </div>
+      </footer>
     </div>
   );
 }

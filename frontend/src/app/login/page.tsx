@@ -3,7 +3,18 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
-import { Mail, Lock, ArrowRight, Loader2, Eye, EyeOff, Sparkles, Key } from 'lucide-react';
+import { 
+  Mail, 
+  Lock, 
+  ArrowRight, 
+  Loader2, 
+  Eye, 
+  EyeOff, 
+  Zap, 
+  ShieldAlert, 
+  Sparkles,
+  Key
+} from 'lucide-react';
 import { ModernAuthLayout } from '@/components/ui/modern-login-signup';
 
 export default function Login() {
@@ -58,8 +69,9 @@ export default function Login() {
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Error Alert Box */}
         {error && (
-          <div className="rounded-xl border border-red-500/30 bg-red-950/30 p-3 text-xs text-red-300 animate-in fade-in duration-200">
-            {error}
+          <div className="flex items-center gap-2.5 rounded-xl border border-red-500/30 bg-red-950/40 p-3 text-xs text-red-300 animate-in fade-in duration-200">
+            <ShieldAlert size={16} className="text-red-400 shrink-0" />
+            <span className="flex-1">{error}</span>
           </div>
         )}
 
@@ -68,8 +80,8 @@ export default function Login() {
           <label className="block text-xs font-semibold text-slate-300">
             Email address
           </label>
-          <div className="relative">
-            <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-slate-500 pointer-events-none" />
+          <div className="relative group">
+            <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-slate-500 transition-colors group-focus-within:text-emerald-400 pointer-events-none" />
             <input
               type="email"
               name="email"
@@ -77,8 +89,8 @@ export default function Login() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@domain.com"
-              className="w-full rounded-xl py-2.5 pr-4 pl-10 text-xs bg-slate-900/90 border border-white/10 text-white placeholder:text-slate-600 outline-none transition-all focus:border-emerald-500/70 focus:ring-1 focus:ring-emerald-500/50"
+              placeholder="alice@whispernet.dev"
+              className="w-full rounded-xl py-3 pr-4 pl-10 text-xs bg-slate-900/90 border border-white/10 text-white placeholder:text-slate-600 outline-none transition-all focus:border-emerald-500/80 focus:ring-2 focus:ring-emerald-500/20"
             />
           </div>
         </div>
@@ -89,10 +101,10 @@ export default function Login() {
             <label className="block text-xs font-semibold text-slate-300">
               Master password
             </label>
-            <span className="text-[11px] text-slate-500">Argon2id Protected</span>
+            <span className="text-[11px] text-slate-500 font-mono">Argon2id Hash</span>
           </div>
-          <div className="relative">
-            <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-slate-500 pointer-events-none" />
+          <div className="relative group">
+            <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-slate-500 transition-colors group-focus-within:text-emerald-400 pointer-events-none" />
             <input
               type={showPassword ? 'text' : 'password'}
               name="password"
@@ -101,34 +113,38 @@ export default function Login() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••••••"
-              className="w-full rounded-xl py-2.5 pr-10 pl-10 text-xs bg-slate-900/90 border border-white/10 text-white placeholder:text-slate-600 outline-none transition-all focus:border-emerald-500/70 focus:ring-1 focus:ring-emerald-500/50"
+              className="w-full rounded-xl py-3 pr-11 pl-10 text-xs bg-slate-900/90 border border-white/10 text-white placeholder:text-slate-600 outline-none transition-all focus:border-emerald-500/80 focus:ring-2 focus:ring-emerald-500/20"
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors p-1"
             >
               {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
             </button>
           </div>
         </div>
 
-        {/* Quick Demo Pre-fill for Testing & Review */}
+        {/* One-Click Demo Accounts Pre-fill Pill Bar */}
         <div className="pt-1">
-          <div className="flex items-center justify-between text-[11px] text-slate-400 mb-2">
-            <span className="text-slate-500">Quick Test Autofill:</span>
-            <div className="flex items-center gap-2">
+          <div className="flex items-center justify-between p-2.5 rounded-xl bg-white/[0.03] border border-white/5">
+            <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
+              <Zap size={12} className="text-amber-400" />
+              <span>1-Click Test Login:</span>
+            </div>
+            <div className="flex items-center gap-1.5">
               <button
                 type="button"
                 onClick={() => handleDemoFill('alice')}
-                className="px-2 py-0.5 rounded-md bg-white/[0.04] border border-white/10 hover:border-emerald-500/40 hover:text-emerald-400 transition-colors text-[10px] font-mono"
+                className="px-2.5 py-1 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 hover:text-emerald-300 border border-emerald-500/30 text-[11px] font-mono font-medium transition-all"
               >
                 Alice
               </button>
               <button
                 type="button"
                 onClick={() => handleDemoFill('bob')}
-                className="px-2 py-0.5 rounded-md bg-white/[0.04] border border-white/10 hover:border-cyan-500/40 hover:text-cyan-400 transition-colors text-[10px] font-mono"
+                className="px-2.5 py-1 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 hover:text-cyan-300 border border-cyan-500/30 text-[11px] font-mono font-medium transition-all"
               >
                 Bob
               </button>
@@ -136,23 +152,25 @@ export default function Login() {
           </div>
         </div>
 
-        {/* Submit Button */}
+        {/* Hero Submit Button */}
         <button
           type="submit"
           disabled={submitting}
-          className="w-full rounded-xl py-2.5 px-4 font-semibold text-xs transition-all flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-[0_4px_15px_rgba(16,185,129,0.25)] hover:shadow-[0_4px_25px_rgba(16,185,129,0.4)] active:scale-[0.99] disabled:opacity-50 mt-2"
+          className="group relative w-full overflow-hidden rounded-xl bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 p-px font-semibold text-slate-950 shadow-[0_0_25px_rgba(16,185,129,0.3)] transition-all duration-300 hover:shadow-[0_0_35px_rgba(16,185,129,0.45)] active:scale-[0.99] disabled:opacity-60 disabled:pointer-events-none mt-2"
         >
-          {submitting ? (
-            <>
-              <Loader2 className="size-4 animate-spin text-slate-950" />
-              <span>Decrypting Session Key…</span>
-            </>
-          ) : (
-            <>
-              <span>Sign In to WhisperNet</span>
-              <ArrowRight className="size-3.5" />
-            </>
-          )}
+          <div className="relative flex items-center justify-center gap-2 rounded-[11px] bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-300 px-4 py-3 text-xs font-bold tracking-tight text-slate-950 transition-colors">
+            {submitting ? (
+              <>
+                <Loader2 size={16} className="animate-spin text-slate-950" />
+                <span>Decrypting RAM Vault...</span>
+              </>
+            ) : (
+              <>
+                <span>Unlock Vault & Sign In</span>
+                <ArrowRight size={15} className="transition-transform group-hover:translate-x-1 text-slate-950" />
+              </>
+            )}
+          </div>
         </button>
       </form>
     </ModernAuthLayout>
