@@ -27,7 +27,7 @@ import axios from 'axios';
 import { theme } from '@/lib/theme';
 import { WhisperNetLogo } from '@/components/ui/WhisperNetLogo';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
+import { API_URL } from '@/lib/config';
 
 const cryptoStats = [
   { label: 'Bulk Encryption', value: 'AES-256-GCM', sub: 'Authenticated AEAD Mode', icon: Lock, color: '#10b981' },

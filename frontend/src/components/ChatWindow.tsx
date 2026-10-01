@@ -38,7 +38,7 @@ import EmojiPicker, { Theme } from 'emoji-picker-react';
 import { theme } from '@/lib/theme';
 import Link from 'next/link';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
+import { API_URL } from '@/lib/config';
 const ROTATION_LIMIT = 30;
 
 const playSound = (type: 'send' | 'receive') => {

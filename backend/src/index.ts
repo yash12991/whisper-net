@@ -12,18 +12,37 @@ import { setupSocketHandlers } from './socket/socket';
 
 dotenv.config();
 
+const clientUrl = process.env.CLIENT_URL || '';
+const parsedClientUrls = clientUrl ? clientUrl.split(',').map(u => u.trim().replace(/\/+$/, '')) : [];
+
 const allowedOrigins = [
   'http://localhost:3000',
   'https://whispernet-chat.vercel.app',
   'https://ciphera-chat.vercel.app',
-  process.env.CLIENT_URL
-].filter(Boolean) as string[];
+  ...parsedClientUrls
+].filter(Boolean);
+
+const corsOriginHandler = (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+  if (!origin) return callback(null, true);
+  const normalizedOrigin = origin.replace(/\/+$/, '');
+  if (
+    allowedOrigins.includes(normalizedOrigin) ||
+    normalizedOrigin.endsWith('.vercel.app') ||
+    normalizedOrigin.includes('localhost') ||
+    normalizedOrigin.includes('127.0.0.1')
+  ) {
+    return callback(null, true);
+  }
+  callback(null, true);
+};
 
 const app = express();
+app.set('trust proxy', 1);
+
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
-    origin: allowedOrigins,
+    origin: corsOriginHandler,
     methods: ['GET', 'POST'],
     credentials: true,
   },
@@ -31,7 +50,7 @@ const io = new Server(httpServer, {
 
 app.use(helmet());
 app.use(cors({
-  origin: allowedOrigins,
+  origin: corsOriginHandler,
   credentials: true,
 }));
 app.use(express.json());

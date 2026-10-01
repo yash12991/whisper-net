@@ -28,7 +28,7 @@ import Link from 'next/link';
 import { theme } from '@/lib/theme';
 import { WhisperNetLogo } from '@/components/ui/WhisperNetLogo';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
+import { API_URL } from '@/lib/config';
 
 export default function Sidebar({
   onSelectConversation,

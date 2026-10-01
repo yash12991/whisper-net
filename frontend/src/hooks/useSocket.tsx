@@ -5,7 +5,7 @@ import { io, Socket } from 'socket.io-client';
 import axios from 'axios';
 import { useAuth } from './useAuth';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
+import { API_URL } from '@/lib/config';
 
 interface SocketContextType {
   socket: Socket | null;
